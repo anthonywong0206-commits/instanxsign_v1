@@ -1,4 +1,4 @@
-import { Download, Eye, Share2, Trash2, ClipboardList, CalendarDays } from 'lucide-react'
+import { Download, Share2, Trash2, ClipboardList, CalendarDays } from 'lucide-react'
 import { exportElementAsPdf, exportElementAsPng, shareElementAsImage } from '../lib/exporters'
 
 export default function RecordsPage({ state, setState, selectedItem }) {
@@ -25,7 +25,7 @@ export default function RecordsPage({ state, setState, selectedItem }) {
       <section className="card">
         <h2 className="text-2xl font-black">紀錄頁面</h2>
         <p className="mt-1 text-sm text-slate-500">
-          只要項目曾經建立簽收紀錄，會一律保留在此頁面。PNG / PDF 匯出會按項目獨立匯出。
+          每個曾經有簽收紀錄的項目都會保留在此頁。PNG / PDF 匯出會按項目獨立處理。
         </p>
       </section>
 
@@ -40,9 +40,9 @@ export default function RecordsPage({ state, setState, selectedItem }) {
           </div>
         </section>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {recordGroups.map((group) => (
-            <section key={group.itemId} className="space-y-3">
+            <section key={group.itemId} className="space-y-4">
               <div className="card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -66,55 +66,6 @@ export default function RecordsPage({ state, setState, selectedItem }) {
                       </span>
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => window.print()}
-                    className="icon-button no-print"
-                    title="預覽 / 列印"
-                  >
-                    <Eye size={22} />
-                  </button>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3 no-print">
-                  <button
-                    onClick={() =>
-                      exportElementAsPng(
-                        `sign-table-${group.safeId}`,
-                        `${safeFileName(group.itemTitle)}-簽收表.png`
-                      )
-                    }
-                    className="secondary-button"
-                  >
-                    <Download size={18} />
-                    匯出 PNG
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      exportElementAsPdf(
-                        `sign-table-${group.safeId}`,
-                        `${safeFileName(group.itemTitle)}-簽收表.pdf`
-                      )
-                    }
-                    className="secondary-button"
-                  >
-                    <Download size={18} />
-                    匯出 PDF
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      shareElementAsImage(
-                        `sign-table-${group.safeId}`,
-                        `${group.itemTitle}｜QuickSign 簽收表`
-                      )
-                    }
-                    className="secondary-button col-span-2"
-                  >
-                    <Share2 size={18} />
-                    分享此項目圖片 / WhatsApp
-                  </button>
                 </div>
               </div>
 
@@ -200,13 +151,60 @@ export default function RecordsPage({ state, setState, selectedItem }) {
                 </div>
               </div>
 
-              <button
-                onClick={() => clearItemRecords(group.itemId, group.itemTitle)}
-                className="danger-button no-print"
-              >
-                <Trash2 size={20} />
-                清空「{group.itemTitle}」紀錄
-              </button>
+              <div className="card no-print">
+                <h4 className="mb-4 text-lg font-black">
+                  匯出及管理「{group.itemTitle}」
+                </h4>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() =>
+                      exportElementAsPng(
+                        `sign-table-${group.safeId}`,
+                        `${safeFileName(group.itemTitle)}-簽收表.png`
+                      )
+                    }
+                    className="secondary-button"
+                  >
+                    <Download size={18} />
+                    匯出 PNG
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      exportElementAsPdf(
+                        `sign-table-${group.safeId}`,
+                        `${safeFileName(group.itemTitle)}-簽收表.pdf`
+                      )
+                    }
+                    className="secondary-button"
+                  >
+                    <Download size={18} />
+                    匯出 PDF
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      shareElementAsImage(
+                        `sign-table-${group.safeId}`,
+                        `${group.itemTitle}｜QuickSign 簽收表`
+                      )
+                    }
+                    className="secondary-button col-span-2"
+                  >
+                    <Share2 size={18} />
+                    分享圖片 / WhatsApp
+                  </button>
+
+                  <button
+                    onClick={() => clearItemRecords(group.itemId, group.itemTitle)}
+                    className="danger-button col-span-2"
+                  >
+                    <Trash2 size={20} />
+                    清空此項目紀錄
+                  </button>
+                </div>
+              </div>
             </section>
           ))}
         </div>
