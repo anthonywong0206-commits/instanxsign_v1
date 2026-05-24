@@ -1,0 +1,10 @@
+{
+  "name": "QuickSign",
+  "short_name": "QuickSign",
+  "description": "快速完成簽收、即場登記及電子簽名。",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": []
+}
