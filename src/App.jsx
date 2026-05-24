@@ -28,6 +28,11 @@ export default function App() {
   }, [state.items, state.selectedItemId])
 
   const startKiosk = () => {
+    if (!selectedItem) {
+      alert('請先選取簽收項目。')
+      return
+    }
+
     setKioskMode(true)
     setPage('checkin')
   }
@@ -64,6 +69,7 @@ export default function App() {
       id: crypto.randomUUID(),
       itemId: selectedItem.id,
       itemTitle: selectedItem.title,
+      itemDate: selectedItem.date,
       date: now.toLocaleDateString(),
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: now.toISOString(),
@@ -78,10 +84,8 @@ export default function App() {
     }))
 
     setForm(emptyForm)
-    setNotice('已成功簽收')
+    setNotice('已完成簽收')
     setTimeout(() => setNotice(''), 1800)
-
-    if (!kioskMode) setPage('records')
   }
 
   return (

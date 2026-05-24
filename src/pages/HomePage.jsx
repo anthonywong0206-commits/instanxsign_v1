@@ -1,6 +1,5 @@
 import React from 'react'
-import { CalendarDays, ClipboardCheck, Plus, QrCode, X, Trash2 } from 'lucide-react'
-import { QRCodeCanvas } from 'qrcode.react'
+import { CalendarDays, ClipboardCheck, Plus, X, Trash2 } from 'lucide-react'
 import FieldEditor from '../components/FieldEditor'
 
 const createBlankItem = () => ({
@@ -24,19 +23,11 @@ export default function HomePage({
   const [deletePassword, setDeletePassword] = React.useState('')
   const [deleteError, setDeleteError] = React.useState('')
 
-  const openCreateForm = () => {
-    setDraftItem(createBlankItem())
-  }
-
-  const closeCreateForm = () => {
-    setDraftItem(null)
-  }
+  const openCreateForm = () => setDraftItem(createBlankItem())
+  const closeCreateForm = () => setDraftItem(null)
 
   const updateDraft = (patch) => {
-    setDraftItem((item) => ({
-      ...item,
-      ...patch
-    }))
+    setDraftItem((item) => ({ ...item, ...patch }))
   }
 
   const confirmCreateItem = () => {
@@ -49,9 +40,7 @@ export default function HomePage({
       ...draftItem,
       id: crypto.randomUUID(),
       title: draftItem.title.trim(),
-      fields: (draftItem.fields || []).filter((field) =>
-        field.label?.trim()
-      )
+      fields: (draftItem.fields || []).filter((field) => field.label?.trim())
     }
 
     setState((s) => ({
@@ -63,13 +52,11 @@ export default function HomePage({
     setDraftItem(null)
   }
 
-  const openItem = (id) => {
+  const selectItem = (id) => {
     setState((s) => ({
       ...s,
       selectedItemId: id
     }))
-
-    setPage('checkin')
   }
 
   const requestDeleteItem = (event, item) => {
@@ -94,10 +81,7 @@ export default function HomePage({
     }
 
     setState((s) => {
-      const remainingItems = s.items.filter(
-        (item) => item.id !== deleteTarget.id
-      )
-
+      const remainingItems = s.items.filter((item) => item.id !== deleteTarget.id)
       const nextSelectedId =
         s.selectedItemId === deleteTarget.id
           ? remainingItems[0]?.id || ''
@@ -113,6 +97,15 @@ export default function HomePage({
     cancelDelete()
   }
 
+  const startSelectedItem = () => {
+    if (!selectedItem) {
+      alert('請先選取簽收項目。')
+      return
+    }
+
+    onStartKiosk()
+  }
+
   return (
     <div className="page">
       <section className="card">
@@ -120,7 +113,7 @@ export default function HomePage({
           <div>
             <h2 className="text-2xl font-black">簽收項目</h2>
             <p className="mt-1 text-sm text-slate-500">
-              主畫面顯示已建立的簽收項目，點選即可進入簽收。
+              請先選取已建立項目，項目轉黑色後，再按「啟動簽到模式」。
             </p>
           </div>
 
@@ -143,35 +136,28 @@ export default function HomePage({
         ) : (
           <div className="space-y-3">
             {state.items.map((item) => {
-              const count = state.records.filter(
-                (record) => record.itemId === item.id
-              ).length
+              const count = state.records.filter((record) => record.itemId === item.id).length
+              const isSelected = state.selectedItemId === item.id
 
               return (
                 <div
                   key={item.id}
-                  className={`w-full rounded-[1.5rem] border p-4 transition ${
-                    state.selectedItemId === item.id
+                  onClick={() => selectItem(item.id)}
+                  className={`w-full cursor-pointer rounded-[1.5rem] border p-4 transition active:scale-[.99] ${
+                    isSelected
                       ? 'border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950'
                       : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <button
-                      onClick={() => openItem(item.id)}
-                      className="min-w-0 flex-1 text-left active:scale-[.99]"
-                    >
+                    <div className="min-w-0 flex-1 text-left">
                       <div className="truncate text-lg font-black">
                         {item.title || '未命名簽收項目'}
                       </div>
 
-                      <div
-                        className={`mt-2 flex flex-wrap items-center gap-3 text-sm ${
-                          state.selectedItemId === item.id
-                            ? 'opacity-80'
-                            : 'text-slate-500'
-                        }`}
-                      >
+                      <div className={`mt-2 flex flex-wrap items-center gap-3 text-sm ${
+                        isSelected ? 'opacity-80' : 'text-slate-500'
+                      }`}>
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays size={16} />
                           {item.date || '未設定日期'}
@@ -182,24 +168,21 @@ export default function HomePage({
                           {count} 筆紀錄
                         </span>
                       </div>
-                    </button>
+                    </div>
 
                     <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        onClick={() => openItem(item.id)}
-                        className={`rounded-2xl px-3 py-2 text-xs font-black ${
-                          state.selectedItemId === item.id
-                            ? 'bg-white/20'
-                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                        }`}
-                      >
-                        簽收
-                      </button>
+                      <div className={`rounded-2xl px-3 py-2 text-xs font-black ${
+                        isSelected
+                          ? 'bg-white/20'
+                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                      }`}>
+                        {isSelected ? '已選取' : '選取'}
+                      </div>
 
                       <button
                         onClick={(event) => requestDeleteItem(event, item)}
                         className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
-                          state.selectedItemId === item.id
+                          isSelected
                             ? 'bg-rose-500/20 text-rose-100 dark:text-rose-600'
                             : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40'
                         }`}
@@ -216,21 +199,8 @@ export default function HomePage({
         )}
       </section>
 
-      <section className="card">
-        <h3 className="mb-3 text-xl font-black">QR Code 快速進入</h3>
-
-        <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-50 p-5 dark:bg-slate-900">
-          <QRCodeCanvas value={window.location.href} size={180} />
-
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-            <QrCode size={18} />
-            現場可展示此 QR Code
-          </div>
-        </div>
-      </section>
-
       {state.items.length > 0 && (
-        <button onClick={onStartKiosk} className="primary-button">
+        <button onClick={startSelectedItem} className="primary-button">
           <ClipboardCheck size={22} />
           啟動簽到模式
         </button>
@@ -247,10 +217,7 @@ export default function HomePage({
                 </p>
               </div>
 
-              <button
-                onClick={closeCreateForm}
-                className="icon-button"
-              >
+              <button onClick={closeCreateForm} className="icon-button">
                 <X size={22} />
               </button>
             </div>
@@ -284,9 +251,7 @@ export default function HomePage({
                     <input
                       type="checkbox"
                       checked={draftItem.requireSignature !== false}
-                      onChange={(e) =>
-                        updateDraft({ requireSignature: e.target.checked })
-                      }
+                      onChange={(e) => updateDraft({ requireSignature: e.target.checked })}
                     />
                     啟用電子簽名
                   </label>
@@ -333,10 +298,7 @@ export default function HomePage({
                 </p>
               </div>
 
-              <button
-                onClick={cancelDelete}
-                className="icon-button"
-              >
+              <button onClick={cancelDelete} className="icon-button">
                 <X size={20} />
               </button>
             </div>
