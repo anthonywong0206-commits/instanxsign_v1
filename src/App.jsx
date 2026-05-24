@@ -44,7 +44,10 @@ export default function App() {
       return
     }
 
-    const missing = (selectedItem.fields || []).find((field) => field.required && !String(form.values[field.id] || '').trim())
+    const missing = (selectedItem.fields || []).find(
+      (field) => field.required && !String(form.values[field.id] || '').trim()
+    )
+
     if (missing) {
       alert(`請填寫：${missing.label}`)
       return
@@ -56,6 +59,7 @@ export default function App() {
     }
 
     const now = new Date()
+
     const record = {
       id: crypto.randomUUID(),
       itemId: selectedItem.id,
@@ -68,7 +72,11 @@ export default function App() {
       signature: form.signature
     }
 
-    setState((s) => ({ ...s, records: [record, ...s.records] }))
+    setState((s) => ({
+      ...s,
+      records: [record, ...s.records]
+    }))
+
     setForm(emptyForm)
     setNotice('已成功簽收')
     setTimeout(() => setNotice(''), 1800)
@@ -95,6 +103,7 @@ export default function App() {
           state={state}
           setState={setState}
           selectedItem={selectedItem}
+          setPage={setPage}
           onStartKiosk={startKiosk}
         />
       )}
