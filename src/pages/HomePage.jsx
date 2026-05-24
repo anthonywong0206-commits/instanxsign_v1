@@ -1,6 +1,5 @@
 import React from 'react'
-
-import { CalendarDays, ClipboardCheck, Plus, QrCode, X } from 'lucide-react'
+import { CalendarDays, ClipboardCheck, Plus, QrCode, X, Trash2 } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import FieldEditor from '../components/FieldEditor'
 
@@ -21,6 +20,9 @@ export default function HomePage({
   onStartKiosk
 }) {
   const [draftItem, setDraftItem] = React.useState(null)
+  const [deleteTarget, setDeleteTarget] = React.useState(null)
+  const [deletePassword, setDeletePassword] = React.useState('')
+  const [deleteError, setDeleteError] = React.useState('')
 
   const openCreateForm = () => {
     setDraftItem(createBlankItem())
@@ -70,9 +72,46 @@ export default function HomePage({
     setPage('checkin')
   }
 
-  const selectedRecords = state.records.filter(
-    (record) => record.itemId === selectedItem?.id
-  )
+  const requestDeleteItem = (event, item) => {
+    event.stopPropagation()
+    setDeleteTarget(item)
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
+  const cancelDelete = () => {
+    setDeleteTarget(null)
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
+  const confirmDeleteItem = () => {
+    const correctPassword = state.settings?.password || '123456'
+
+    if (deletePassword !== correctPassword) {
+      setDeleteError('密碼錯誤，請再試一次。')
+      return
+    }
+
+    setState((s) => {
+      const remainingItems = s.items.filter(
+        (item) => item.id !== deleteTarget.id
+      )
+
+      const nextSelectedId =
+        s.selectedItemId === deleteTarget.id
+          ? remainingItems[0]?.id || ''
+          : s.selectedItemId
+
+      return {
+        ...s,
+        items: remainingItems,
+        selectedItemId: nextSelectedId
+      }
+    })
+
+    cancelDelete()
+  }
 
   return (
     <div className="page">
@@ -109,17 +148,19 @@ export default function HomePage({
               ).length
 
               return (
-                <button
+                <div
                   key={item.id}
-                  onClick={() => openItem(item.id)}
-                  className={`w-full rounded-[1.5rem] border p-4 text-left transition active:scale-[.99] ${
+                  className={`w-full rounded-[1.5rem] border p-4 transition ${
                     state.selectedItemId === item.id
                       ? 'border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950'
                       : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                  <div className="flex items-start gap-3">
+                    <button
+                      onClick={() => openItem(item.id)}
+                      className="min-w-0 flex-1 text-left active:scale-[.99]"
+                    >
                       <div className="truncate text-lg font-black">
                         {item.title || '未命名簽收項目'}
                       </div>
@@ -141,19 +182,34 @@ export default function HomePage({
                           {count} 筆紀錄
                         </span>
                       </div>
-                    </div>
+                    </button>
 
-                    <div
-                      className={`rounded-2xl px-3 py-2 text-xs font-black ${
-                        state.selectedItemId === item.id
-                          ? 'bg-white/20'
-                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                      }`}
-                    >
-                      簽收
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        onClick={() => openItem(item.id)}
+                        className={`rounded-2xl px-3 py-2 text-xs font-black ${
+                          state.selectedItemId === item.id
+                            ? 'bg-white/20'
+                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                        }`}
+                      >
+                        簽收
+                      </button>
+
+                      <button
+                        onClick={(event) => requestDeleteItem(event, item)}
+                        className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+                          state.selectedItemId === item.id
+                            ? 'bg-rose-500/20 text-rose-100 dark:text-rose-600'
+                            : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40'
+                        }`}
+                        title="刪除此簽收項目"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>
@@ -187,7 +243,7 @@ export default function HomePage({
               <div>
                 <h2 className="text-2xl font-black">新增簽收項目</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  請先輸入目前選取項目設定及自訂收集項目，確認後才會建立。
+                  請先輸入項目設定及自訂收集項目，確認後才會建立。
                 </p>
               </div>
 
@@ -201,7 +257,7 @@ export default function HomePage({
 
             <div className="space-y-5">
               <div className="rounded-[1.5rem] bg-slate-50 p-4 dark:bg-slate-950">
-                <h3 className="mb-4 text-lg font-black">目前選取項目設定</h3>
+                <h3 className="mb-4 text-lg font-black">項目設定</h3>
 
                 <div className="grid gap-4">
                   <div>
@@ -262,6 +318,64 @@ export default function HomePage({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur">
+          <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl dark:bg-slate-900">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black">刪除簽收項目</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  請輸入管理密碼，確認刪除「{deleteTarget.title}」。
+                </p>
+              </div>
+
+              <button
+                onClick={cancelDelete}
+                className="icon-button"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <input
+              autoFocus
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && confirmDeleteItem()}
+              className="input mt-5"
+              placeholder="輸入管理密碼"
+            />
+
+            {deleteError && (
+              <p className="mt-3 text-sm font-bold text-rose-600">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={cancelDelete}
+                className="rounded-2xl bg-slate-100 px-4 py-4 font-black text-slate-700 dark:bg-slate-800 dark:text-white"
+              >
+                取消
+              </button>
+
+              <button
+                onClick={confirmDeleteItem}
+                className="rounded-2xl bg-rose-600 px-4 py-4 font-black text-white"
+              >
+                確認刪除
+              </button>
+            </div>
+
+            <p className="mt-4 text-xs leading-relaxed text-slate-500">
+              注意：只會刪除簽收項目本身；已建立的簽收紀錄會保留在紀錄頁面。
+            </p>
           </div>
         </div>
       )}
