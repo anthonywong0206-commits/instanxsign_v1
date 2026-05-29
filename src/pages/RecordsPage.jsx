@@ -25,7 +25,7 @@ export default function RecordsPage({ state, setState, selectedItem }) {
       <section className="card">
         <h2 className="text-2xl font-black">紀錄頁面</h2>
         <p className="mt-1 text-sm text-slate-500">
-          每個曾經有簽收紀錄的項目都會保留在此頁。PNG / PDF 匯出會按項目獨立處理。
+          每個曾經有簽收紀錄的項目都會保留在此頁。每個項目的登記表、匯出及清空紀錄功能會放在同一框內。
         </p>
       </section>
 
@@ -40,38 +40,36 @@ export default function RecordsPage({ state, setState, selectedItem }) {
           </div>
         </section>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {recordGroups.map((group) => (
-            <section key={group.itemId} className="space-y-4">
-              <div className="card">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-sm font-black text-slate-500">
-                      <ClipboardList size={18} />
-                      簽收項目
-                    </div>
+            <section key={group.itemId} className="card">
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-sm font-black text-slate-500">
+                    <ClipboardList size={18} />
+                    簽收項目
+                  </div>
 
-                    <h3 className="mt-1 truncate text-2xl font-black">
-                      {group.itemTitle}
-                    </h3>
+                  <h3 className="mt-1 truncate text-2xl font-black">
+                    {group.itemTitle}
+                  </h3>
 
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarDays size={16} />
-                        {group.itemDate || '沒有日期'}
-                      </span>
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                    <span className="inline-flex items-center gap-1">
+                      <CalendarDays size={16} />
+                      {group.itemDate || '沒有日期'}
+                    </span>
 
-                      <span>
-                        共 {group.records.length} 筆紀錄
-                      </span>
-                    </div>
+                    <span>
+                      共 {group.records.length} 筆紀錄
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div
                 id={`sign-table-${group.safeId}`}
-                className="rounded-[2rem] bg-white p-5 text-slate-950 shadow-soft"
+                className="export-sheet rounded-[2rem] bg-white p-5 text-slate-950 shadow-soft"
               >
                 <div className="border-b border-slate-200 pb-4">
                   <div className="text-sm font-bold text-slate-500">
@@ -90,8 +88,8 @@ export default function RecordsPage({ state, setState, selectedItem }) {
                   </div>
                 </div>
 
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[760px] border-collapse text-sm">
+                <div className="mt-4 w-full overflow-x-auto">
+                  <table className="export-table w-full border-collapse text-sm">
                     <thead>
                       <tr className="bg-slate-100">
                         <th className="border p-2 text-left">#</th>
@@ -106,7 +104,7 @@ export default function RecordsPage({ state, setState, selectedItem }) {
                         ))}
 
                         <th className="border p-2 text-left">簽名</th>
-                        <th className="border p-2 text-left no-print">操作</th>
+                        <th className="border p-2 text-left export-hide no-print">操作</th>
                       </tr>
                     </thead>
 
@@ -135,7 +133,7 @@ export default function RecordsPage({ state, setState, selectedItem }) {
                             )}
                           </td>
 
-                          <td className="border p-2 no-print">
+                          <td className="border p-2 export-hide no-print">
                             <button
                               onClick={() => removeRecord(record.id)}
                               className="text-rose-600"
@@ -151,55 +149,26 @@ export default function RecordsPage({ state, setState, selectedItem }) {
                 </div>
               </div>
 
-              <div className="card no-print">
-                <h4 className="mb-4 text-lg font-black">
-                  匯出及管理「{group.itemTitle}」
-                </h4>
+              <div className="mt-5 rounded-[1.5rem] bg-slate-50 p-4 dark:bg-slate-950 no-print">
+                <h4 className="mb-4 text-lg font-black">匯出及管理</h4>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() =>
-                      exportElementAsPng(
-                        `sign-table-${group.safeId}`,
-                        `${safeFileName(group.itemTitle)}-簽收表.png`
-                      )
-                    }
-                    className="secondary-button"
-                  >
+                  <button onClick={() => exportElementAsPng(`sign-table-${group.safeId}`, `${safeFileName(group.itemTitle)}-簽收表.png`)} className="secondary-button">
                     <Download size={18} />
                     匯出 PNG
                   </button>
 
-                  <button
-                    onClick={() =>
-                      exportElementAsPdf(
-                        `sign-table-${group.safeId}`,
-                        `${safeFileName(group.itemTitle)}-簽收表.pdf`
-                      )
-                    }
-                    className="secondary-button"
-                  >
+                  <button onClick={() => exportElementAsPdf(`sign-table-${group.safeId}`, `${safeFileName(group.itemTitle)}-簽收表.pdf`)} className="secondary-button">
                     <Download size={18} />
                     匯出 PDF
                   </button>
 
-                  <button
-                    onClick={() =>
-                      shareElementAsImage(
-                        `sign-table-${group.safeId}`,
-                        `${group.itemTitle}｜QuickSign 簽收表`
-                      )
-                    }
-                    className="secondary-button col-span-2"
-                  >
+                  <button onClick={() => shareElementAsImage(`sign-table-${group.safeId}`, `${group.itemTitle}｜QuickSign 簽收表`)} className="secondary-button col-span-2">
                     <Share2 size={18} />
                     分享圖片 / WhatsApp
                   </button>
 
-                  <button
-                    onClick={() => clearItemRecords(group.itemId, group.itemTitle)}
-                    className="danger-button col-span-2"
-                  >
+                  <button onClick={() => clearItemRecords(group.itemId, group.itemTitle)} className="danger-button col-span-2">
                     <Trash2 size={20} />
                     清空此項目紀錄
                   </button>
@@ -214,20 +183,13 @@ export default function RecordsPage({ state, setState, selectedItem }) {
 }
 
 function buildRecordGroups(state) {
-  const itemsById = Object.fromEntries(
-    (state.items || []).map((item) => [item.id, item])
-  )
-
+  const itemsById = Object.fromEntries((state.items || []).map((item) => [item.id, item]))
   const map = new Map()
 
   for (const record of state.records || []) {
     const item = itemsById[record.itemId]
-
     const itemId = record.itemId || 'unknown'
-    const itemTitle =
-      item?.title ||
-      record.itemTitle ||
-      '已刪除／未命名項目'
+    const itemTitle = item?.title || record.itemTitle || '已刪除／未命名項目'
 
     if (!map.has(itemId)) {
       map.set(itemId, {
@@ -252,17 +214,11 @@ function buildRecordGroups(state) {
 
 function inferFieldsFromRecords(records, itemId) {
   const fieldIds = new Set()
-
   for (const record of records || []) {
     if (record.itemId !== itemId) continue
-
     Object.keys(record.values || {}).forEach((key) => fieldIds.add(key))
   }
-
-  return Array.from(fieldIds).map((id) => ({
-    id,
-    label: id
-  }))
+  return Array.from(fieldIds).map((id) => ({ id, label: id }))
 }
 
 function makeSafeId(value) {
@@ -270,7 +226,5 @@ function makeSafeId(value) {
 }
 
 function safeFileName(name) {
-  return String(name || 'QuickSign')
-    .replace(/[\\/:*?"<>|]/g, '')
-    .slice(0, 50)
+  return String(name || 'QuickSign').replace(/[\\/:*?"<>|]/g, '').slice(0, 50)
 }
